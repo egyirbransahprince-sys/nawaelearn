@@ -1,0 +1,9 @@
+{
+  "name": "NEW NAWA Educational App",
+  "description": "An interactive educational platform connecting teachers and students. It facilitates class management, lessons, quizzes, submissions, and communication within a structured learning environment.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "display-capture"
+  ]
+}
