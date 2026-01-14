@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { useLocalStorage } from './hooks/useLocalStorage';
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase";
 import { Teacher, Student, NawaClass, Gender } from './types';
 import Auth from './components/Auth';
 import { TeacherDashboard } from './components/TeacherDashboard';
@@ -11,8 +12,37 @@ import NotificationBell from './components/NotificationBell';
 import InstallPWAButton from './components/InstallPWAButton';
 
 const App: React.FC = () => {
-  const [currentUser, setCurrentUser] = useLocalStorage<Teacher | Student | null>('currentUser', null);
-  const [selectedClassId, setSelectedClassId] = useLocalStorage<string | null>('selectedClassId', null);
+  useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      setCurrentUser(null);
+      setSelectedClassId(null);
+      return;
+    }
+
+    const role = user.displayName?.startsWith("student:") ? "student" : "teacher";
+
+    if (role === "teacher") {
+      setCurrentUser({
+        id: user.uid,
+        role: "teacher",
+        fullName: user.displayName?.replace("teacher:", "") || "Teacher",
+        email: user.email || "",
+      } as any);
+    } else {
+      setCurrentUser({
+        id: user.uid,
+        role: "student",
+        fullName: user.displayName?.replace("student:", "") || "Student",
+        classId: user.photoURL || "",
+      } as any);
+    }
+  });
+
+  return () => unsubscribe();
+}, []);
+  const [currentUser, setCurrentUser] = useState<Teacher | Student | null>(null);
+const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [showAuth, setShowAuth] = useState(false);
 
   const handleLogin = (user: Teacher | Student) => {
