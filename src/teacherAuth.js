@@ -1,22 +1,15 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from "./firebase";
+import { auth } from "./firebase";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
 
-export async function teacherSignup(email, password, className) {
-  const user = await createUserWithEmailAndPassword(auth, email, password);
-
-  await setDoc(doc(db, "teachers", email), {
-    email,
-    className
+export async function teacherSignup(fullName, email, password) {
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  await updateProfile(userCredential.user, {
+    displayName: "teacher:" + fullName
   });
-
-  await setDoc(doc(db, "classes", className), {
-    teacherEmail: email,
-    className,
-    isLive: false
-  });
+  return userCredential.user;
 }
 
 export async function teacherLogin(email, password) {
-  await signInWithEmailAndPassword(auth, email, password);
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  return userCredential.user;
 }
