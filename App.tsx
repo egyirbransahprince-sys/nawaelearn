@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./firebase";
+import { auth, db } from "./firebase";
 import { Teacher, Student, NawaClass, Gender } from './types';
 import Auth from './components/Auth';
 import { TeacherDashboard } from './components/TeacherDashboard';
