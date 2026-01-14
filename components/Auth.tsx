@@ -1,5 +1,13 @@
 
 import React, { useState } from 'react';
+import { auth, db } from "../firebase";
+import { 
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword 
+} from "firebase/auth";
+import { 
+  doc, getDoc, setDoc, query, where, collection, getDocs 
+} from "firebase/firestore";
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { Teacher, Student, Gender, NawaClass } from '../types';
 
