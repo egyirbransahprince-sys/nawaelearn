@@ -2,7 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 // FIX: The error "Module has no default export" is fixed by ensuring App.tsx has a default export. The import statement is correct.
-import App from './App';
+import App from "./src/App";
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
