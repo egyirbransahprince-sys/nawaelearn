@@ -3,13 +3,13 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "./firebase";
 import { Teacher, Student, NawaClass, Gender } from '../types';
-import Auth from './components/Auth';
-import { TeacherDashboard } from './components/TeacherDashboard';
-import StudentDashboard from './components/StudentDashboard';
-import { PlusCircleIcon, EditIcon, Trash2Icon, UsersIcon, ChevronDownIcon, GitMergeIcon, ArrowDownToLineIcon, UploadCloudIcon, XIcon, XCircleIcon } from './components/icons';
-import LandingPage from './components/LandingPage';
-import NotificationBell from './components/NotificationBell';
-import InstallPWAButton from './components/InstallPWAButton';
+import Auth from '../components/Auth';
+import { TeacherDashboard } from '../components/TeacherDashboard';
+import StudentDashboard from '../components/StudentDashboard';
+import { PlusCircleIcon, EditIcon, Trash2Icon, UsersIcon, ChevronDownIcon, GitMergeIcon, ArrowDownToLineIcon, UploadCloudIcon, XIcon, XCircleIcon } from '../components/icons';
+import LandingPage from '../components/LandingPage';
+import NotificationBell from '../components/NotificationBell';
+import InstallPWAButton from '../components/InstallPWAButton';
 
 const App: React.FC = () => {
   useEffect(() => {
