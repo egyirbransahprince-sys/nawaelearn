@@ -12,35 +12,7 @@ import NotificationBell from '../components/NotificationBell';
 import InstallPWAButton from '../components/InstallPWAButton';
 
 const App: React.FC = () => {
-  useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      setCurrentUser(null);
-      setSelectedClassId(null);
-      return;
-    }
-
-    const role = user.displayName?.startsWith("student:") ? "student" : "teacher";
-
-    if (role === "teacher") {
-      setCurrentUser({
-        id: user.uid,
-        role: "teacher",
-        fullName: user.displayName?.replace("teacher:", "") || "Teacher",
-        email: user.email || "",
-      } as any);
-    } else {
-      setCurrentUser({
-        id: user.uid,
-        role: "student",
-        fullName: user.displayName?.replace("student:", "") || "Student",
-        classId: user.photoURL || "",
-      } as any);
-    }
-  });
-
-  return () => unsubscribe();
-}, []);
+ 
   const [currentUser, setCurrentUser] = useState<Teacher | Student | null>(null);
 const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [showAuth, setShowAuth] = useState(false);
@@ -78,12 +50,10 @@ const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
     return <Auth onLogin={handleLogin} onBack={handleBackToLanding} />;
   }
 
-  if (currentUser.role === 'teacher') {
-    if (!selectedClassId) {
-        return <ClassManagement teacher={currentUser} onSelectClass={handleSelectClass} onLogout={handleLogout} />
-    }
-    return <TeacherClassDashboard teacher={currentUser} selectedClassId={selectedClassId} onBackToClasses={handleBackToClasses} onLogout={handleLogout} />;
-  }
+ if (currentUser.role === 'teacher') {
+  return <TeacherDashboard teacher={currentUser} onLogout={handleLogout} />;
+}
+
 
   if (currentUser.role === 'student') {
     return <StudentDashboard student={currentUser} onLogout={handleLogout}/>;
@@ -92,20 +62,7 @@ const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   return <div>Error: Unknown user role.</div>;
 };
 
-const TeacherClassDashboard: React.FC<{teacher: Teacher, selectedClassId: string, onBackToClasses: () => void, onLogout: () => void}> = ({teacher, selectedClassId, onBackToClasses, onLogout}) => {
-    const [classes] = useLocalStorage<NawaClass[]>('classes', []);
-    const selectedClass = useMemo(() => classes.find(c => c.id === selectedClassId), [classes, selectedClassId]);
 
-    if (!selectedClass) {
-        return <div className="p-8">Error: Class not found. <button onClick={onBackToClasses} className="text-primary underline">Go back</button></div>;
-    }
-
-    return <TeacherDashboard teacher={teacher} selectedClass={selectedClass} onBackToClasses={onBackToClasses} onLogout={onLogout} />
-}
-
-const ClassManagement: React.FC<{ teacher: Teacher, onSelectClass: (classId: string) => void, onLogout: () => void }> = ({ teacher, onSelectClass, onLogout }) => {
-    const [classes, setClasses] = useLocalStorage<NawaClass[]>('classes', []);
-    const [students, setStudents] = useLocalStorage<Student[]>('students', []);
     
     const [showModal, setShowModal] = useState(false);
     const [editingClass, setEditingClass] = useState<NawaClass | null>(null);
