@@ -8,7 +8,6 @@ import {
 import { 
   doc, getDoc, setDoc, query, where, collection, getDocs 
 } from "firebase/firestore";
-import { useLocalStorage } from '../hooks/useLocalStorage';
 import { Teacher, Student, Gender, NawaClass } from '../types';
 
 interface AuthProps {
@@ -20,9 +19,6 @@ type AuthView = 'teacher-login' | 'teacher-signup' | 'student-join';
 
 const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
   const [view, setView] = useState<AuthView>('teacher-login');
-  const [teachers, setTeachers] = useLocalStorage<Teacher[]>('teachers', []);
-  const [students, setStudents] = useLocalStorage<Student[]>('students', []);
-  const [classes, setClasses] = useLocalStorage<NawaClass[]>('classes', []);
   
   const [fullName, setFullName] = useState('');
   const [gender, setGender] = useState<Gender>(Gender.Male);
@@ -31,68 +27,102 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
   const [className, setClassName] = useState('');
   const [error, setError] = useState('');
 
-  const handleTeacherSignup = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    
-    if (teachers.some(t => t.email === email)) {
-      setError('A teacher with this email already exists.');
-      return;
-    }
+ const handleTeacherSignup = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError('');
 
-    const newTeacher: Teacher = {
-      id: `teacher-${Date.now()}`,
+  try {
+    // Create Firebase Auth account
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
+
+    // Save teacher profile in Firestore
+    await setDoc(doc(db, "teachers", uid), {
+      id: uid,
       fullName,
       gender,
       email,
-      passwordHash: password,
-      role: 'teacher',
+      role: "teacher",
+      createdAt: new Date()
+    });
+
+    const teacher: Teacher = {
+      id: uid,
+      fullName,
+      gender,
+      email,
+      role: "teacher"
     };
-    setTeachers([...teachers, newTeacher]);
-    onLogin(newTeacher);
-  };
 
-  const handleTeacherLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    const teacher = teachers.find(t => t.email === email && t.passwordHash === password);
-    if (teacher) {
-      onLogin(teacher);
-    } else {
-      setError('Invalid credentials. Please check your email and password.');
-    }
-  };
+    onLogin(teacher);
+  } catch (err: any) {
+    setError(err.message);
+  }
+};
 
-  const handleStudentJoin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
 
-    const targetClass = classes.find(c => c.name.toLowerCase() === className.toLowerCase());
-    if (!targetClass) {
-      setError('Class not found. Please ensure the class name is correct.');
+ const handleTeacherLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError('');
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
+
+    const snap = await getDoc(doc(db, "teachers", uid));
+    if (!snap.exists()) {
+      setError("Teacher profile not found.");
       return;
     }
 
-    const existingStudent = students.find(s => s.fullName.toLowerCase() === fullName.toLowerCase());
-    if (existingStudent) {
-      if (existingStudent.classId === targetClass.id) {
-        onLogin(existingStudent);
-      } else {
-        setError('A student with this name is already registered in a different class.');
-        return;
-      }
-    } else {
-      const newStudent: Student = {
-        id: `student-${Date.now()}`,
-        fullName,
-        classId: targetClass.id,
-        teacherId: targetClass.teacherId,
-        role: 'student',
-      };
-      setStudents([...students, newStudent]);
-      onLogin(newStudent);
+    onLogin(snap.data() as Teacher);
+  } catch (err: any) {
+    setError("Invalid email or password");
+  }
+};
+
+ const handleStudentJoin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError('');
+
+  try {
+    // Find class by name
+    const q = query(collection(db, "classes"), where("name", "==", className));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      setError("Class not found.");
+      return;
     }
-  };
+
+    const classDoc = snapshot.docs[0];
+    const classData = classDoc.data();
+
+    // Ensure student name not in another class
+    const studentQuery = query(collection(db, "students"), where("fullName", "==", fullName));
+    const existing = await getDocs(studentQuery);
+
+    if (!existing.empty && existing.docs[0].data().classId !== classDoc.id) {
+      setError("This name is already registered in another class.");
+      return;
+    }
+
+    const studentRef = doc(collection(db, "students"));
+    const student: Student = {
+      id: studentRef.id,
+      fullName,
+      classId: classDoc.id,
+      teacherId: classData.teacherId,
+      role: "student"
+    };
+
+    await setDoc(studentRef, student);
+    onLogin(student);
+  } catch (err: any) {
+    setError("Failed to join class.");
+  }
+};
+
 
   const renderForm = () => {
     switch (view) {
