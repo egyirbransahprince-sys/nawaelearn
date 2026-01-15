@@ -3,11 +3,15 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "./firebase";
 import { doc, getDoc } from "firebase/firestore";
 
-import { Teacher, Student, NawaClass, Gender } from "./types";
-import Auth from "./components/Auth";
-import LandingPage from "./components/LandingPage";
-import { TeacherDashboard } from "./components/TeacherDashboard";
-import StudentDashboard from "./components/StudentDashboard";
+import { Teacher, Student, NawaClass, Gender } from "../types";
+import Auth from "../components/Auth";
+import LandingPage from "../components/LandingPage";
+import { TeacherDashboard } from "../components/TeacherDashboard";
+import StudentDashboard from "../components/StudentDashboard";
+import { PlusCircleIcon, EditIcon, Trash2Icon, UsersIcon, ChevronDownIcon, GitMergeIcon, ArrowDownToLineIcon, UploadCloudIcon, XIcon, XCircleIcon } from "../components/icons";
+import NotificationBell from "../components/NotificationBell";
+import InstallPWAButton from "../components/InstallPWAButton";
+
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<Teacher | Student | null>(null);
